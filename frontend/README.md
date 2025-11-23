@@ -20,8 +20,6 @@ bun install
 bun run dev
 ```
 
-Приложение будет доступно на [http://localhost:3000](http://localhost:3000)
-
 **Сборка для production**
 
 ```bash
@@ -38,8 +36,8 @@ bun run dev       # Запуск dev-сервера
 bun run build     # Сборка приложения
 bun run preview   # Просмотр production сборки
 bun run lint      # Проверка кода ESLint
-bun run lint:fix  # Исправление проблем ESLint
 bun run format    # Форматирование через Prettier
+bun run pretty    # Форматирование через Prettier, проверка кода ESLint
 ```
 
 ---
