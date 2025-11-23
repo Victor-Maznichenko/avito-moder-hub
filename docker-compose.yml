@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  server:
+    build:
+      context: ./tech-int3-server
+    container_name: tech-server
+    ports:
+      - 3001:3001
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: tech-frontend
+    depends_on:
+      - server
+    ports:
+      - 5173:5173
+    restart: unless-stopped
+
+# Both services will be on the same default network, so from the
+# frontend nginx container the backend is reachable at hostname
+# `tech-int3-server` on port `3001` (see nginx.conf proxy_pass).

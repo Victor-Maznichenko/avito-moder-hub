@@ -1,0 +1,38 @@
+# Node & deps
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Docker / compose / shields
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Git / repo metadata
+.git
+.gitignore
+
+# Docs / config / editor
+README.md
+LICENSE
+.vscode
+.idea
+.editorconfig
+Makefile
+helm-charts
+
+# Env / secrets / CI
+.env
+.env.* 
+coverage*
+*.local
+
+# Build outputs / caches
+dist
+dist-ssr
+.build
+.cache
+*.tgz
