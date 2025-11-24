@@ -11,6 +11,7 @@ RUN bun install
 
 # Копируем исходный код
 COPY . .
+COPY .env.example .env 
 
 # Открываем порт
 EXPOSE 3001

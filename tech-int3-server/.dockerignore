@@ -26,7 +26,6 @@ helm-charts
 
 # Env / secrets / CI
 .env
-.env.* 
 coverage*
 *.local
 
