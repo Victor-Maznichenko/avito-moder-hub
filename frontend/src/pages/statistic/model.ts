@@ -17,22 +17,24 @@ const initialSummary = {
   averageReviewTime: 0
 };
 
-const PageGate = createGate();
+const Gate = createGate();
 
+// Change period logic
+const periodChanged = createEvent<string>();
 const $period = createStore('week');
 const $isCustomPeriod = $period.map((state) => state === Period.Custom);
-const periodChanged = createEvent<string>();
 $period.on(periodChanged, (_, newPeriod) => newPeriod);
+
+// Other
+const getSummaryFx = createEffect(requests.getSummary);
+const getАctivityFx = createEffect(requests.getActivity);
+const getDecisionsFx = createEffect(requests.getDecisions);
+const getCategoriesFx = createEffect(requests.getCategories);
 
 const $summary = createStore<StatsSummary>(initialSummary);
 const $activity = createStore<ActivityData[]>([]);
 const $decisions = createStore<Nullable<DecisionsData>>(null);
 const $categories = createStore<Nullable<CategoriesDistribution>>(null);
-
-const getSummaryFx = createEffect(requests.getSummary);
-const getАctivityFx = createEffect(requests.getActivity);
-const getDecisionsFx = createEffect(requests.getDecisions);
-const getCategoriesFx = createEffect(requests.getCategories);
 
 interface FormValues {
   endDate: Nullable<string>;
@@ -51,7 +53,7 @@ const form = createForm<FormValues>({
 });
 
 sample({
-  clock: [PageGate.open, $period],
+  clock: [Gate.open, $period],
   source: $period,
   filter: not($isCustomPeriod),
   fn: (period) => ({ period }) as GetChartParams,
@@ -66,28 +68,13 @@ sample({
   target: [getSummaryFx, getАctivityFx, getDecisionsFx, getCategoriesFx]
 });
 
-sample({
-  clock: getSummaryFx.doneData,
-  target: $summary
-});
-
-sample({
-  clock: getАctivityFx.doneData,
-  target: $activity
-});
-
-sample({
-  clock: getDecisionsFx.doneData,
-  target: $decisions
-});
-
-sample({
-  clock: getCategoriesFx.doneData,
-  target: $categories
-});
+sample({ clock: getSummaryFx.doneData, target: $summary });
+sample({ clock: getАctivityFx.doneData, target: $activity });
+sample({ clock: getDecisionsFx.doneData, target: $decisions });
+sample({ clock: getCategoriesFx.doneData, target: $categories });
 
 export const model = {
-  PageGate,
+  Gate,
   form,
   $period,
   $isCustomPeriod,
@@ -95,5 +82,8 @@ export const model = {
   $activity,
   $decisions,
   $categories,
+  $isActivityLoading: getАctivityFx.pending,
+  $isDecisionsLoading: getDecisionsFx.pending,
+  $isCategoriesLoading: getCategoriesFx.pending,
   periodChanged
 };

@@ -1,7 +1,17 @@
-import { createEvent } from 'effector';
+import { createEvent, createStore, sample } from 'effector';
+import { createGate } from 'effector-react';
 
-const aproved = createEvent();
-const rejected = createEvent();
-const requestChanges = createEvent();
+const Gate = createGate<number>();
 
-export const model = { aproved, rejected, requestChanges };
+const $id = createStore<Nullable<number>>(null);
+
+const aproved = createEvent<number>();
+const rejected = createEvent<number>();
+const requestChanges = createEvent<number>();
+
+sample({
+  clock: [Gate.open, Gate.state],
+  target: $id
+});
+
+export const model = { Gate, aproved, rejected, requestChanges };

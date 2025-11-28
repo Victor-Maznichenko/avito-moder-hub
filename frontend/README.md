@@ -121,4 +121,3 @@ frontend/
 │   │       └── model.ts
 │   └── main.tsx
 ```
-

@@ -15,10 +15,10 @@ import { AdSeller } from './ad-seller';
 
 export const AdvertisementPage = () => {
   const { id } = useParams();
-  useGate(model.PageGate, id);
+  useGate(model.Gate, Number(id));
   const advertisement = useUnit(model.$ad);
 
-  if (!advertisement) {
+  if (!advertisement || !id) {
     return (
       <AppShellMain>
         <Container size='lg'>Загрузка...</Container>

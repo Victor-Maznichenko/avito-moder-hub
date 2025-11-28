@@ -1,4 +1,4 @@
-import { createEffect, createStore, sample } from 'effector';
+import { createEffect, createStore, sample, split } from 'effector';
 import { createGate } from 'effector-react';
 import { reset } from 'patronum';
 
@@ -6,17 +6,22 @@ import type { ReasonValues } from '@/shared/lib';
 
 import { adActionsModel } from '@/features';
 import { requests } from '@/shared/api';
-import { ReasonLabels } from '@/shared/lib';
+import { AdStatus, ReasonLabels } from '@/shared/lib';
 import { adModalModel } from '@/widgets/ad-modal';
 
-const PageGate = createGate<string>();
+const Gate = createGate<number>();
 
 const getAdFx = createEffect(requests.getAd);
+const adAproveFx = createEffect(requests.postAdApprove);
+const adRejectFx = createEffect(requests.postAdReject);
+const adRequestChangesFx = createEffect(requests.postAdRequestChanges);
+
 const $ad = createStore<Nullable<Advertisement>>(null);
 
+/* Fetch advertisement */
 sample({
-  clock: [PageGate.open, PageGate.state],
-  filter: (id) => typeof id === 'string' && id.length > 0,
+  clock: [Gate.open, Gate.state],
+  filter: Boolean,
   fn: (options) => ({ id: options }),
   target: getAdFx
 });
@@ -26,37 +31,25 @@ sample({
   target: $ad
 });
 
-const adAproveFx = createEffect(requests.postAdApprove);
-const adRejectFx = createEffect(requests.postAdReject);
-const adRequestChangesFx = createEffect(requests.postAdRequestChanges);
-
-const MODAL_TYPES = {
-  Rejected: 'rejected',
-  RequestChanges: 'request-changes'
-};
-
+/* Processing actions */
 sample({
   clock: adActionsModel.rejected,
-  source: $ad,
-  filter: Boolean,
-  fn: ({ id }) => ({
+  fn: (id) => ({
     id,
     color: 'red',
     title: 'Причина отклонения:',
-    type: MODAL_TYPES.Rejected
+    type: AdStatus.Rejected
   }),
   target: adModalModel.setOpened
 });
 
 sample({
   clock: adActionsModel.requestChanges,
-  source: $ad,
-  filter: Boolean,
-  fn: ({ id }) => ({
+  fn: (id) => ({
     id,
     color: 'yellow',
     title: 'Причина доработок:',
-    type: MODAL_TYPES.RequestChanges
+    type: AdStatus.RequestChanges
   }),
   target: adModalModel.setOpened
 });
@@ -69,6 +62,7 @@ sample({
   target: adAproveFx
 });
 
+/* Processing modal form */
 const formSubmitted = sample({
   clock: sample({
     clock: adModalModel.form.submit,
@@ -85,19 +79,26 @@ const formSubmitted = sample({
   }
 });
 
-sample({
+const submittedWithType = sample({
   clock: formSubmitted,
   source: adModalModel.$type,
-  filter: (type) => type === MODAL_TYPES.Rejected,
-  fn: (_, data) => data,
+  fn: (type, data) => ({ type, data })
+});
+
+const { rejected, requestChanges } = split(submittedWithType, {
+  [AdStatus.Rejected]: ({ type }) => type === AdStatus.Rejected,
+  [AdStatus.RequestChanges]: ({ type }) => type === AdStatus.RequestChanges
+});
+
+sample({
+  clock: rejected,
+  fn: ({ data }) => data,
   target: adRejectFx
 });
 
 sample({
-  clock: formSubmitted,
-  source: adModalModel.$type,
-  filter: (type) => type === MODAL_TYPES.RequestChanges,
-  fn: (_, data) => data,
+  clock: requestChanges,
+  fn: ({ data }) => data,
   target: adRequestChangesFx
 });
 
@@ -109,9 +110,15 @@ sample({
   target: getAdFx
 });
 
+/* Resseted values */
+sample({
+  clock: [adAproveFx.finally, adRejectFx.finally, adRequestChangesFx.finally, Gate.close],
+  target: adModalModel.resetted
+});
+
 reset({
-  clock: PageGate.close,
+  clock: Gate.close,
   target: $ad
 });
 
-export const model = { PageGate, $ad };
+export const model = { Gate, $ad };

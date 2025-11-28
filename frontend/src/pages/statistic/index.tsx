@@ -13,6 +13,7 @@ import {
   Paper,
   SegmentedControl,
   SimpleGrid,
+  Skeleton,
   Stack,
   Text,
   Title
@@ -31,6 +32,7 @@ import {
   PeriodLabel,
   secondsToMinutes
 } from '@/shared/lib';
+import { Condition } from '@/shared/ui';
 
 import { model } from './model';
 
@@ -40,13 +42,16 @@ const periods = Object.values(Period).map((value) => ({
 }));
 
 export const StatsPage = () => {
-  useGate(model.PageGate);
+  useGate(model.Gate);
   const [
     period,
     activity,
     decisions,
     categories,
     isCustomPeriod,
+    isActivityLoading,
+    isDecisionsLoading,
+    isCategoriesLoading,
     { totalReviewed, approvedPercentage, rejectedPercentage, averageReviewTime },
     formSubmit,
     periodChanged
@@ -56,6 +61,9 @@ export const StatsPage = () => {
     model.$decisions,
     model.$categories,
     model.$isCustomPeriod,
+    model.$isActivityLoading,
+    model.$isDecisionsLoading,
+    model.$isCategoriesLoading,
     model.$summary,
     model.form.submit,
     model.periodChanged
@@ -178,12 +186,18 @@ export const StatsPage = () => {
                 <Badge variant='outline'>{PeriodLabel[period as ValueOf<typeof Period>]}</Badge>
               </Group>
 
-              <BarChart
-                data={activityDataPrepared}
-                dataKey='date'
-                h={320}
-                series={activitySeries}
-                type='stacked'
+              <Condition
+                then={
+                  <BarChart
+                    data={activityDataPrepared}
+                    dataKey='date'
+                    h={320}
+                    series={activitySeries}
+                    type='stacked'
+                  />
+                }
+                else={<Skeleton h={320} />}
+                value={!isActivityLoading}
               />
             </Paper>
 
@@ -191,31 +205,43 @@ export const StatsPage = () => {
               <Text mb={8}>Распределение решений</Text>
               <Divider my='sm' />
               <Flex justify='center'>
-                <PieChart
-                  withLabels
-                  withLabelsLine
-                  data={decisionsDataPrepared ?? []}
-                  labelsType='percent'
-                  size={300}
-                  labelsPosition='outside'
-                  withTooltip
+                <Condition
+                  then={
+                    <PieChart
+                      withLabels
+                      withLabelsLine
+                      data={decisionsDataPrepared ?? []}
+                      labelsType='percent'
+                      size={300}
+                      labelsPosition='outside'
+                      withTooltip
+                    />
+                  }
+                  else={<Skeleton h={380} radius='50%' w={380} />}
+                  value={!isDecisionsLoading}
                 />
               </Flex>
             </Paper>
 
             <Paper p='md' radius='md' withBorder>
               <Group mb='md'>
-                <Text>График активности</Text>
+                <Text>Распределение категорий:</Text>
                 <Badge variant='outline'>{PeriodLabel[period as ValueOf<typeof Period>]}</Badge>
               </Group>
 
-              <RadarChart
-                data={categoriesDataPrepared ?? []}
-                dataKey='category'
-                h={320}
-                series={[{ name: 'value', color: 'indigo.5', opacity: 0.1 }]}
-                withDots
-                withTooltip
+              <Condition
+                then={
+                  <RadarChart
+                    data={categoriesDataPrepared ?? []}
+                    dataKey='category'
+                    h={320}
+                    series={[{ name: 'value', color: 'indigo.5', opacity: 0.1 }]}
+                    withDots
+                    withTooltip
+                  />
+                }
+                else={<Skeleton h={320} />}
+                value={!isCategoriesLoading}
               />
             </Paper>
           </Stack>

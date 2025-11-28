@@ -9,7 +9,7 @@ import { AdsSleleton } from './ads-skeleton';
 import { model } from './model';
 
 export const HomePage = () => {
-  useGate(model.PageGate);
+  useGate(model.Gate);
   const [adsList, page, isLoading, totalPages, setPage] = useUnit([
     model.$ads,
     model.$page,
@@ -21,8 +21,8 @@ export const HomePage = () => {
   return (
     <AppShellMain>
       <Container size='lg'>
-        <AdsOptions />
         <Stack mb='md'>
+          <AdsOptions />
           <Condition
             else={
               <Condition
@@ -40,8 +40,8 @@ export const HomePage = () => {
             then={<AdsSleleton />}
             value={isLoading}
           />
+          <Pagination value={page} onChange={setPage} total={totalPages} />
         </Stack>
-        <Pagination value={page} onChange={setPage} total={totalPages} />
       </Container>
     </AppShellMain>
   );

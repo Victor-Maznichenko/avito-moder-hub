@@ -6,11 +6,12 @@ import { adsOptionsModel } from '@/features/ads-options';
 import { requests } from '@/shared/api';
 import { filterOptions } from '@/shared/lib';
 
-const PageGate = createGate();
+const Gate = createGate();
 
 /* Pagination logic */
-const $page = createStore(1);
 const pageChanged = createEvent<number>();
+const $totalPages = createStore(1);
+const $page = createStore(1);
 
 sample({
   clock: pageChanged,
@@ -22,7 +23,6 @@ $page.reset(adsOptionsModel.$categoryId, adsOptionsModel.$debouncedSearch);
 /* Get adds logic */
 const getAdsFx = createEffect(requests.getAds);
 const $ads = createStore<Advertisement[]>([]);
-const $totalPages = createStore(0);
 
 const $unFormedOptions = combine({
   page: $page,
@@ -40,7 +40,7 @@ const $requestOptions = combine(
 );
 
 sample({
-  clock: [PageGate.open, adsOptionsModel.form.formValidated, $unFormedOptions],
+  clock: [Gate.open, adsOptionsModel.form.formValidated, $unFormedOptions],
   source: $requestOptions,
   fn: (options) => filterOptions(options) as GetAdsParams,
   target: getAdsFx
@@ -59,7 +59,7 @@ sample({
 });
 
 export const model = {
-  PageGate,
+  Gate,
   $isLoading: getAdsFx.pending,
   $ads,
   $page,

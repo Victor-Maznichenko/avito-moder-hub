@@ -1,7 +1,7 @@
 import { api } from '@/shared/api/instance';
 
 interface BaseAdParams {
-  id: number | string
+  id: number | string;
 }
 
 interface UnsuitableAdParams extends BaseAdParams, PostAdUnsuitableParams {}

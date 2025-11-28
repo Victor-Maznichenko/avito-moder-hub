@@ -35,17 +35,18 @@ const form = createForm<FormValues>({
       ]
     },
     status: { init: [] },
-    sortBy: { init: null },
-    sortOrder: {
+    sortBy: {
       init: null,
       rules: [
         {
           name: 'sortByRequired',
-          validator: (_, { sortBy }: Pick<FormValues, 'sortBy'>) => Boolean(sortBy),
+          validator: (value, { sortOrder }: Pick<FormValues, 'sortOrder'>) =>
+            !sortOrder || Boolean(value),
           errorText: 'Выберите параметр сортировки.'
         }
       ]
-    }
+    },
+    sortOrder: { init: null }
   },
   validateOn: ['submit']
 });
